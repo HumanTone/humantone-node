@@ -5,6 +5,24 @@
 export type HumanizationLevel = 'standard' | 'advanced' | 'extreme';
 export type OutputFormat = 'html' | 'text' | 'markdown';
 
+export type HumanToneErrorCode =
+  | 'missing_api_key'
+  | 'invalid_api_key_format'
+  | 'authentication_error'
+  | 'permission_error'
+  | 'not_found'
+  | 'method_not_allowed'
+  | 'rate_limit'
+  | 'insufficient_credits'
+  | 'daily_limit_exceeded'
+  | 'detection_failed'
+  | 'invalid_request'
+  | 'invalid_response'
+  | 'invalid_response_shape'
+  | 'api_error'
+  | 'network_error'
+  | 'timeout';
+
 export interface HumanToneOptions {
   /** API key. Get one at https://app.humantone.io/settings/api. Falls back to HUMANTONE_API_KEY env var. */
   apiKey?: string;
@@ -12,9 +30,17 @@ export interface HumanToneOptions {
   baseUrl?: string;
   /** Request timeout in milliseconds. Defaults to 120000 (120 seconds). */
   timeout?: number;
+  /** Maximum retry attempts. Default 2. Set to 0 to disable retries. */
+  maxRetries?: number;
+  /**
+   * Opt-in: retry POST requests (`humanize`, `detect`) on 5xx and network errors.
+   * Default false because POST endpoints are not idempotent — humanize debits credits, so blind retry could double-bill.
+   * 429 is always retried regardless of this setting.
+   */
+  retryOnPost?: boolean;
   /** Custom fetch implementation. Defaults to globalThis.fetch (Node 18+). */
   fetch?: typeof fetch;
-  /** Custom User-Agent string. Defaults to "humantone-node/<version> (node/<node-version>)". */
+  /** Custom User-Agent suffix appended to the default `humantone-node/<version> (node/<node-version>)` with a single space. */
   userAgent?: string;
 }
 
@@ -23,7 +49,7 @@ export interface HumanizeOptions {
   text: string;
   /** Humanization strength. Default "standard". "advanced" and "extreme" are English-only. */
   level?: HumanizationLevel;
-  /** Output format. Default "html". */
+  /** Output format. SDK defaults to "text" (overrides API default of "html"). */
   outputFormat?: OutputFormat;
   /** Free-form instructions for the rewrite. Max 1000 characters. */
   customInstructions?: string;
@@ -38,8 +64,8 @@ export interface HumanizeResult {
   outputFormat: OutputFormat;
   /** Credits deducted for this request. 1 credit = 100 words. */
   creditsUsed: number;
-  /** Unique request ID. Include in support inquiries. */
-  requestId: string;
+  /** Unique request ID. Resolved from response body or `X-Request-Id` header; null if neither is present. */
+  requestId: string | null;
 }
 
 export interface DetectOptions {
@@ -75,14 +101,17 @@ export interface AccountInfo {
   };
   subscription: {
     active: boolean;
-    expiresAt: string;
+    /** ISO timestamp when subscription expires. May be null if no subscription. */
+    expiresAt: string | null;
   };
+  /** Resolved request ID for this response (body or `X-Request-Id` header). */
+  requestId?: string | null;
 }
 
 export interface HumanToneErrorOptions {
   statusCode?: number;
-  requestId?: string;
-  errorCode?: string;
+  requestId?: string | null;
+  errorCode?: HumanToneErrorCode | string;
   details?: unknown;
   retryable?: boolean;
 }
@@ -90,8 +119,8 @@ export interface HumanToneErrorOptions {
 export class HumanToneError extends Error {
   readonly name: 'HumanToneError';
   readonly statusCode?: number;
-  readonly requestId?: string;
-  readonly errorCode?: string;
+  readonly requestId?: string | null;
+  readonly errorCode?: HumanToneErrorCode | string;
   readonly details?: unknown;
   readonly retryable: boolean;
   constructor(message: string, options?: HumanToneErrorOptions);

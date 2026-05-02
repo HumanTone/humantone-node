@@ -1,6 +1,6 @@
 {
   "name": "humantone",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Official Node.js SDK for the HumanTone API. Humanize AI-generated text and check AI likelihood.",
   "keywords": [
     "humantone",
@@ -26,6 +26,9 @@
   "author": "HumanTone <dev@humantone.io>",
   "main": "index.js",
   "types": "index.d.ts",
+  "scripts": {
+    "test": "node --test"
+  },
   "files": [
     "index.js",
     "index.d.ts",
