@@ -29,7 +29,7 @@ console.log(result.text);
 console.log(`Credits used: ${result.creditsUsed}`);
 ```
 
-Get an API key at [app.humantone.io/settings/api](https://app.humantone.io/settings/api). Available on all paid plans.
+Get an API key at [app.humantone.io/settings/api](https://humantone.io/dashboard/settings/api). Available on all paid plans.
 
 ## Endpoints
 

@@ -24,7 +24,7 @@ export type HumanToneErrorCode =
   | 'timeout';
 
 export interface HumanToneOptions {
-  /** API key. Get one at https://app.humantone.io/settings/api. Falls back to HUMANTONE_API_KEY env var. */
+  /** API key. Get one at https://humantone.io/dashboard/settings/api. Falls back to HUMANTONE_API_KEY env var. */
   apiKey?: string;
   /** Base URL override. Defaults to https://api.humantone.io. Can also be set via HUMANTONE_BASE_URL. */
   baseUrl?: string;

@@ -120,7 +120,7 @@ class HumanTone {
     if (!apiKey) {
       throw new HumanToneError(
         'Missing API key. Pass { apiKey } to new HumanTone() or set HUMANTONE_API_KEY. ' +
-          'Get a key at https://app.humantone.io/settings/api',
+          'Get a key at https://humantone.io/dashboard/settings/api',
         { errorCode: 'missing_api_key' }
       );
     }
